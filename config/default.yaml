@@ -1,0 +1,55 @@
+ingestion:
+  input_path: "data/input/video.mp4"
+  skip_frames: 0
+  max_frames: null
+
+tracking:
+  conf_threshold: 0.4
+  iou_threshold: 0.5
+  keypoint_conf_threshold: 0.3
+  kalman_window: 5
+  max_disappeared_frames: 90
+  reid_enabled: true
+  reid_appearance_weight: 0.4
+  reid_spatial_weight: 0.3
+  reid_temporal_weight: 0.3
+  reid_merge_threshold: 0.6
+  reid_max_gap_frames: 150
+
+biomechanics:
+  idle_velocity_threshold_px_per_sec: 15.0
+  trunk_flex_threshold_deg: 20.0
+  wrist_above_shoulder_threshold: 0.0
+  full_rula: true
+  force_load_score: 0
+  angle_smoothing_window: 5
+
+classification:
+  confidence_threshold: 0.6
+  min_task_duration_frames: 8
+  task_cooldown_frames: 15
+  pick_velocity_threshold: 30.0
+  stationary_threshold: 20.0
+  movement_velocity_threshold: 60.0
+
+learned_classification:
+  enabled: true
+  model_path: "data/task_model.pt"
+  stats_path: "data/task_model_stats.json"
+  window_size: 30
+  epochs: 50
+  batch_size: 64
+  learning_rate: 0.001
+  n_clusters: 8
+
+zones:
+  grid_cols: 3
+  grid_rows: 2
+
+output:
+  annotated_video: true
+  metrics_csv: true
+  metrics_json: true
+  heatmaps: true
+  pdf_report: true
+  run_id: null
