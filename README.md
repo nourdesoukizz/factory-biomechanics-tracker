@@ -22,14 +22,6 @@
 
 ---
 
-## Demo
-
-<p align="center">
-  <img src="output/annotated/preview.gif" alt="Annotated output preview" width="100%">
-</p>
-
-<p align="center"><em>8-second preview of the annotated output — bounding boxes, skeletons, task labels, RULA badges, zone grid, and live metrics. Full 5-minute video available in <code>output/annotated/</code>.</em></p>
-
 ---
 
 ## Development Timeline
