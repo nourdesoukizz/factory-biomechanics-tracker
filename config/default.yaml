@@ -42,6 +42,10 @@ learned_classification:
   learning_rate: 0.001
   n_clusters: 8
 
+object_detection:
+  enabled: true
+  conf_threshold: 0.3
+
 zones:
   grid_cols: 3
   grid_rows: 2
