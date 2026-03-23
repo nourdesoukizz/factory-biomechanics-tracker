@@ -34,90 +34,90 @@
 
 ## Development Timeline
 
-> **Total development time: 3 hours** | 28 source files | 62 tests | 9,025 frames processed
+> **Total development time: 3 hours** | 28 source files | 62 tests | 9025 frames processed
 
 ```mermaid
 gantt
-    title Development Timeline — 3 Hours, End to End
+    title Development Timeline - 3 Hours End to End
     dateFormat HH:mm
     axisFormat %H:%M
     todayMarker off
 
-    section Phase 1 — Foundation
-    Project structure, config, YAML               :done, f1, 00:00, 10m
-    Dependency management (requirements.txt)      :done, f2, after f1, 5m
-    Data contracts (PersonFrame / PersonState / PersonMetrics) :done, f3, after f2, 10m
+    section Foundation
+    Project structure and YAML config             :done, f1, 00:00, 10m
+    Dependency management                         :done, f2, after f1, 5m
+    Shared data contracts and models              :done, f3, after f2, 10m
 
-    section Phase 2 — Detection and Tracking
+    section Detection and Tracking
     Video ingestion with frame iterator           :done, c1, after f3, 10m
     YOLOv8m-pose detection wrapper                :done, c2, after c1, 10m
     ByteTrack multi-object tracking               :done, c3, after c2, 15m
 
-    section Phase 3 — Biomechanics
-    7-angle joint computation (arctan2)           :done, c4, after c3, 10m
-    Centroid velocity (px/sec)                    :done, c4b, after c4, 5m
+    section Biomechanics
+    Joint angle computation with arctan2          :done, c4, after c3, 10m
+    Centroid velocity in pixels per second        :done, c4b, after c4, 5m
     RULA ergonomic risk scoring                   :done, c5, after c4b, 10m
 
-    section Phase 4 — Task Classification
-    Rule-based classifier (3 tasks + idle)        :done, c6, after c5, 10m
-    State machine with cooldown and min-duration  :done, c6b, after c6, 5m
+    section Task Classification
+    Rule-based classifier for 3 tasks             :done, c6, after c5, 10m
+    State machine with cooldown logic             :done, c6b, after c6, 5m
 
-    section Phase 5 — Metrics and Output
-    Metrics engine (active/idle, zones, movement) :done, c7, after c6b, 10m
-    8-layer frame annotator                       :done, o1, after c7, 10m
+    section Metrics and Output
+    Metrics engine for active idle and zones      :done, c7, after c6b, 10m
+    Eight-layer frame annotator                   :done, o1, after c7, 10m
     Spatial heatmap generator                     :done, o2, after o1, 5m
-    PDF report with charts (ReportLab)            :done, o3, after o2, 10m
-    Pipeline orchestrator and CLI entry point     :done, o4, after o3, 5m
+    PDF report with embedded charts               :done, o3, after o2, 10m
+    Pipeline orchestrator and CLI                 :done, o4, after o3, 5m
 
-    section Phase 6 — Learned Upgrades
-    Full RULA with Tables A, B, C                 :crit, u1, after o4, 10m
+    section Learned Upgrades
+    Full RULA with lookup Tables A B C            :crit, u1, after o4, 10m
     1D Temporal CNN task classifier               :crit, u2, after o4, 15m
-    ReID post-tracking (HSV + spatial + temporal) :crit, u3, after o4, 10m
-    2D Kalman filters (position + velocity)       :crit, u3b, after u3, 5m
-    Foreshortening detection and angle smoothing  :crit, u4, after u1, 5m
+    ReID post-tracking with appearance matching   :crit, u3, after o4, 10m
+    2D Kalman filters for position and velocity   :crit, u3b, after u3, 5m
+    Foreshortening detection and smoothing        :crit, u4, after u1, 5m
 
-    section Phase 7 — Validation and Delivery
-    62-test suite (synthetic fixtures, no video)  :done, t1, after u4, 10m
-    First-pass run: 9025 frames, feature extract  :active, t2, after t1, 12m
+    section Validation and Delivery
+    62-test suite with synthetic fixtures         :done, t1, after u4, 10m
+    First-pass run on 9025 frames                 :active, t2, after t1, 12m
     Train TemporalTaskNet on 46k features         :active, t3, after t2, 2m
-    Final run: learned classifier + full RULA     :active, t4, after t3, 13m
+    Final run with learned classifier             :active, t4, after t3, 13m
     Documentation and README                      :done, t5, after t4, 3m
 ```
 
-## Pipeline Execution — Per Video
+## Pipeline Execution Per Video
 
-> Single run on 1920x1080 @ 30fps, 9025 frames, Apple M1 Pro (MPS)
+> Single run on 1920x1080 at 30fps, 9025 frames, GPU-accelerated via MPS
 
 ```mermaid
 gantt
-    title Pipeline Execution — 13 Minutes per Video
+    title Pipeline Execution - 13 Minutes per Video
     dateFormat mm:ss
     axisFormat %M:%S
     todayMarker off
 
     section Ingestion
-    Load MP4, validate, expose frame iterator    :active, p1, 00:00, 2s
+    Load and validate video metadata              :active, p1, 00:00, 2s
 
-    section Per-Frame Loop (9025 iterations)
-    YOLOv8m-pose detection on MPS GPU            :p2a, 00:02, 11m
-    ByteTrack assignment + ReID merge            :p2b, 00:02, 11m
-    2D Kalman smoothing (17 keypoints x N)       :p2c, 00:02, 11m
-    Joint angles + neck flex + trunk side-bend   :p3a, 00:02, 11m
-    Full RULA scoring (Group A + B + Table C)    :p3b, 00:02, 11m
-    Velocity + foreshortening confidence         :p3c, 00:02, 11m
-    Learned CNN inference (30-frame buffer)      :p4a, 00:02, 11m
-    State machine update + event logging         :p4b, 00:02, 11m
-    Metrics accumulation (active, zones, move)   :p5, 00:02, 11m
-    Annotate frame (8 layers) + write to MP4     :p6, 00:02, 11m
+    section Per-Frame Processing Loop
+    YOLOv8m-pose detection on MPS GPU             :p2a, 00:02, 11m
+    ByteTrack ID assignment and ReID merge        :p2b, 00:02, 11m
+    2D Kalman smoothing on 17 keypoints           :p2c, 00:02, 11m
+    Joint angles and neck and trunk scoring       :p3a, 00:02, 11m
+    Full RULA scoring with Table C lookup         :p3b, 00:02, 11m
+    Velocity and foreshortening confidence        :p3c, 00:02, 11m
+    Learned CNN inference on 30-frame buffer      :p4a, 00:02, 11m
+    State machine update and event logging        :p4b, 00:02, 11m
+    Metrics accumulation for zones and movement   :p5, 00:02, 11m
+    Annotate frame with 8 layers and write MP4    :p6, 00:02, 11m
 
-    section Post-Processing
-    Export metrics CSV (1 row per person)         :crit, p7a, 11:04, 2s
-    Export metrics JSON (nested task events)      :crit, p7b, after p7a, 2s
-    Generate 52 spatial heatmaps + combined      :crit, p7c, after p7b, 25s
-    Generate PDF report (cover + charts + method):crit, p7d, after p7c, 35s
+    section Post-Processing Export
+    Export metrics CSV with 1 row per person       :crit, p7a, 11:04, 2s
+    Export metrics JSON with task event detail     :crit, p7b, after p7a, 2s
+    Generate 52 spatial heatmaps and combined     :crit, p7c, after p7b, 25s
+    Generate PDF report with charts               :crit, p7d, after p7c, 35s
 ```
 
-## Training Pipeline — Self-Supervised from Video
+## Training Pipeline - Self-Supervised from Video
 
 > No manual labels required. The video trains its own classifier.
 
@@ -128,32 +128,31 @@ gantt
     axisFormat %M:%S
     todayMarker off
 
-    section Step 1 — Data Collection (first-pass pipeline)
-    Run full pipeline with rule-based classifier :done, d1, 00:00, 12m
-    Collect 46,142 feature records (11 dims each):done, d2, 00:00, 12m
+    section Data Collection via First-Pass Pipeline
+    Run full pipeline with rule-based labels      :done, d1, 00:00, 12m
+    Collect 46142 feature records at 11 dims      :done, d2, 00:00, 12m
 
-    section Step 2 — Feature Preparation
-    Group records by track_id, sort by frame     :done, fe1, 12:00, 2s
-    Create 8,997 sliding windows (30f, stride 5) :done, fe2, after fe1, 3s
-    Z-score normalize per feature channel        :done, fe3, after fe2, 1s
-    Save normalization mean/std for inference     :done, fe4, after fe3, 1s
+    section Feature Preparation
+    Group records by track ID and sort            :done, fe1, 12:00, 2s
+    Create 8997 sliding windows at stride 5       :done, fe2, after fe1, 3s
+    Z-score normalize per feature channel         :done, fe3, after fe2, 1s
+    Save normalization stats for inference        :done, fe4, after fe3, 1s
 
-    section Step 3 — Unsupervised Label Refinement
-    K-means clustering (k=8) on flattened windows:done, lr1, after fe4, 4s
-    Compare cluster majority vs pseudo-labels    :done, lr2, after lr1, 1s
-    Correct low-confidence disagreements         :done, lr3, after lr2, 1s
-    Stratified 80/20 train/validation split      :done, lr4, after lr3, 1s
+    section Unsupervised Label Refinement
+    K-means clustering with 8 clusters            :done, lr1, after fe4, 4s
+    Compare cluster majority to pseudo-labels     :done, lr2, after lr1, 1s
+    Correct low-confidence disagreements          :done, lr3, after lr2, 1s
+    Stratified 80-20 train validation split       :done, lr4, after lr3, 1s
 
-    section Step 4 — Model Training
-    TemporalTaskNet: 3xConv1d + BN + GAP + FC   :crit, mt1, after lr4, 40s
-    Adam optimizer, class-weighted CrossEntropy  :crit, mt2, after lr4, 40s
-    Augmentation: temporal jitter + Gaussian noise:crit, mt3, after lr4, 40s
-    Early stopping on val loss (patience=10)     :crit, mt4, after lr4, 40s
+    section Model Training
+    TemporalTaskNet 3 Conv1d layers 24K params    :crit, mt1, after lr4, 40s
+    Adam optimizer with class-weighted loss       :crit, mt2, after lr4, 40s
+    Temporal jitter and Gaussian noise augment    :crit, mt3, after lr4, 40s
+    Early stopping on val loss patience 10        :crit, mt4, after lr4, 40s
 
-    section Step 5 — Artifacts
-    Save best model weights (task_model.pt)      :done, out1, after mt1, 1s
-    Save feature stats (task_model_stats.json)   :done, out2, after mt1, 1s
-    Final val loss: 0.012 on 1,800 windows       :milestone, m1, after out2, 0
+    section Artifacts
+    Save best model weights to task_model.pt      :done, out1, after mt1, 1s
+    Save feature stats to JSON                    :done, out2, after mt1, 1s
 ```
 
 ---
@@ -293,7 +292,7 @@ All settings in `config/default.yaml`:
 
 | Decision | Choice | Why |
 |---|---|---|
-| Detection model | YOLOv8m-pose | Best accuracy/speed tradeoff with built-in pose on Apple Silicon (MPS) |
+| Detection model | YOLOv8m-pose | Best accuracy/speed tradeoff with built-in pose, GPU-accelerated |
 | Tracking | ByteTrack + ReID | Handles occlusion; ReID merges fragmented tracks (**190 → 52 persons**) |
 | Task classification | Learned 1D CNN | Trained on video itself via pseudo-labels; generalizes better than hard rules |
 | Keypoint smoothing | 2D Kalman (pos+vel) | Tracks position and velocity; predicts during brief occlusions |
@@ -302,48 +301,62 @@ All settings in `config/default.yaml`:
 
 ---
 
-## What I Would Do With More Time (6 hours total)
+## Current Limitations
+
+| Area | Limitation | Impact |
+|---|---|---|
+| Pose estimation | 2D keypoints only, no depth | Foreshortening reduces angle accuracy when limbs point toward or away from camera |
+| Task classification | Trained on pseudo-labels from a single video | Model may not generalize well to different factory layouts or camera angles |
+| Object interaction | No explicit object detection | Tasks inferred from pose alone, cannot confirm if worker is actually holding a tray or rack |
+| Tracking | ReID uses color histograms only | Workers in identical uniforms may be confused after long occlusions |
+| RULA scoring | Wrist twist not detectable in 2D | Wrist twist defaults to neutral, underestimating risk for twisting motions |
+| Scalability | Single-threaded frame processing | Processes one frame at a time, no batch GPU inference or multiprocessing |
+| Camera | Single fixed viewpoint | Occlusions from one angle cannot be resolved without additional views |
+
+---
+
+## What I Would Do With More Time
 
 ```mermaid
 gantt
-    title Extended Roadmap — What 3 More Hours Would Unlock
+    title Extended Roadmap - Next Phases
     dateFormat HH:mm
     axisFormat %H:%M
     todayMarker off
 
-    section Already Delivered (Hours 1-3)
-    Full pipeline: detection to PDF report       :done, a1, 00:00, 60m
-    Full RULA, learned CNN, ReID tracking         :done, a2, 01:00, 60m
-    Validation, training, final run               :done, a3, 02:00, 60m
+    section Delivered
+    Full pipeline with learned classifier         :done, a1, 00:00, 60m
+    Full RULA and ReID and 2D mitigation          :done, a2, 01:00, 60m
+    Training and validation and final outputs     :done, a3, 02:00, 60m
 
-    section Hour 4 — Depth and Object Awareness
-    Integrate MotionBERT for 2D-to-3D pose lift  :active, h4a, 03:00, 25m
-    Fine-tune YOLOv8 to detect trays and racks   :h4b, after h4a, 20m
-    Hand-object proximity for task confirmation  :h4c, after h4b, 15m
+    section Phase A - Depth and Object Awareness
+    MotionBERT for 2D to 3D pose lifting         :active, pa1, 03:00, 25m
+    Fine-tune YOLOv8 to detect trays and racks   :pa2, after pa1, 20m
+    Hand-object proximity task confirmation      :pa3, after pa2, 15m
 
-    section Hour 5 — Supervised Learning
-    Manually label 200 video clips (ground truth):h5a, 04:00, 20m
-    Train SlowFast dual-pathway temporal CNN     :h5b, after h5a, 25m
-    Fatigue model: RULA trend across full shift  :h5c, after h5b, 15m
+    section Phase B - Supervised Classification
+    Manually label 200 video clips               :pb1, after pa3, 20m
+    Train SlowFast dual-pathway temporal CNN     :pb2, after pb1, 25m
+    Fatigue model with RULA trend over shift     :pb3, after pb2, 15m
 
-    section Hour 6 — Production Deployment
-    Real-time RTSP stream processing (<1s lag)   :h6a, 05:00, 20m
-    FastAPI dashboard with live metrics and clips:h6b, after h6a, 20m
-    Multi-camera fusion via triangulation        :h6c, after h6b, 15m
-    Docker container + GitHub Actions CI/CD      :h6d, after h6c, 5m
+    section Phase C - Production Deployment
+    Real-time RTSP stream under 1s latency       :pc1, after pb3, 20m
+    FastAPI dashboard with live metrics           :pc2, after pc1, 20m
+    Multi-camera fusion via triangulation        :pc3, after pc2, 15m
+    Docker container and GitHub Actions CI       :pc4, after pc3, 5m
 ```
 
-### Hour 4 — 3D Pose & Object Detection
-- **3D pose lifting** with MotionBERT to convert 2D keypoints to 3D joint positions — eliminates foreshortening issues entirely and gives accurate joint angles regardless of camera angle
-- **Object detection** for trays, racks, and tools using a fine-tuned YOLOv8 — confirms task interactions by checking hand-object proximity rather than relying on pose alone
+### Phase A - Depth and Object Awareness
+- **3D pose lifting** with MotionBERT to convert 2D keypoints to 3D joint positions, eliminating foreshortening issues and giving accurate joint angles regardless of camera angle
+- **Object detection** for trays, racks, and tools using a fine-tuned YOLOv8, confirming task interactions by checking hand-object proximity rather than relying on pose alone
 
-### Hour 5 — Smarter Models
-- **Hand-labeled training data** — annotate 200 short clips with ground-truth task boundaries, replacing pseudo-labels with verified ones
-- **SlowFast temporal CNN** — a heavier temporal model that processes both slow (posture) and fast (motion) pathways for more precise task segmentation
-- **Fatigue modeling** — track each worker's RULA score trend across the full shift to flag cumulative ergonomic risk before injury occurs
+### Phase B - Supervised Classification
+- **Hand-labeled training data** from 200 annotated video clips with ground-truth task boundaries, replacing pseudo-labels with verified ones
+- **SlowFast temporal CNN** processing both slow posture and fast motion pathways for more precise task segmentation
+- **Fatigue modeling** tracking each worker's RULA score trend across the full shift to flag cumulative ergonomic risk before injury occurs
 
-### Hour 6 — Production Readiness
-- **Real-time mode** — refactor the pipeline to process live RTSP camera streams with sub-second latency using batch GPU inference
-- **Web dashboard** — FastAPI backend serving live metrics, annotated video clips, and heatmaps to a browser-based ops dashboard
-- **Multi-camera fusion** — combine views from 2-4 cameras to resolve occlusions and improve zone accuracy through triangulation
-- **Docker + CI/CD** — containerized deployment with GitHub Actions running the test suite on every push
+### Phase C - Production Deployment
+- **Real-time mode** processing live RTSP camera streams with sub-second latency using batch GPU inference
+- **Web dashboard** with FastAPI backend serving live metrics, annotated video clips, and heatmaps to a browser-based ops dashboard
+- **Multi-camera fusion** combining views from multiple cameras to resolve occlusions and improve zone accuracy through triangulation
+- **Docker and CI/CD** for containerized deployment with GitHub Actions running the test suite on every push
