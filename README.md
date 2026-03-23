@@ -2,6 +2,12 @@
 
 Human pose estimation and activity recognition system for factory floor analysis. Tracks worker biomechanics, classifies tasks using a learned temporal CNN, and generates productivity metrics from video.
 
+## Demo
+
+<video src="output/annotated/preview.mp4" autoplay loop muted playsinline width="100%"></video>
+
+*20-second preview of the annotated output. Full 5-minute video available in `output/annotated/`.*
+
 ## Setup
 
 ```bash
