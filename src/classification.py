@@ -5,6 +5,11 @@ from collections import defaultdict
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
 
+# Object proximity thresholds in pixels
+OBJECT_PROXIMITY_NEAR = 80.0   # Close enough to confirm interaction
+OBJECT_PROXIMITY_FAR = 200.0   # Too far to be relevant
+OBJECT_BOOST = 0.15            # Confidence boost when object confirms task
+
 from src.biomechanics import RULA_MEDIUM
 from src.models import PersonFrame, TaskEvent
 
@@ -58,7 +63,8 @@ class TaskClassifier:
 
     def classify_frame(self, person: PersonFrame, joint_angles: Dict[str, float],
                        velocity: float, rula_score: float, rula_label: str,
-                       fps: float) -> Tuple[str, float, List[TaskEvent]]:
+                       fps: float,
+                       object_proximity: Optional[Dict] = None) -> Tuple[str, float, List[TaskEvent]]:
         """Classify the task for a single person in a single frame.
 
         Args:
@@ -68,6 +74,7 @@ class TaskClassifier:
             rula_score: RULA score for this frame.
             rula_label: RULA risk label.
             fps: Video FPS for duration computation.
+            object_proximity: Optional hand-object proximity data from ObjectDetector.
 
         Returns:
             Tuple of (task_name, confidence, list of newly completed TaskEvents).
@@ -78,6 +85,10 @@ class TaskClassifier:
             "lift_and_place": self._lift_and_place_confidence(joint_angles, velocity, rula_label),
             "move_rack": self._move_rack_confidence(joint_angles, velocity),
         }
+
+        # Boost confidence based on object proximity if available
+        if object_proximity is not None:
+            task_confidences = self._apply_object_boost(task_confidences, object_proximity)
 
         # Find best task above threshold
         best_task = "idle"
@@ -210,6 +221,46 @@ class TaskClassifier:
             conditions_met += 1
 
         return conditions_met / total_conditions
+
+    def _apply_object_boost(self, task_confidences: Dict[str, float],
+                            proximity: Dict) -> Dict[str, float]:
+        """Boost task confidence when nearby objects confirm the interaction.
+
+        Args:
+            task_confidences: Base confidence per task from pose analysis.
+            proximity: Hand-object proximity data from ObjectDetector.
+
+        Returns:
+            Updated confidence dict with object-based boosts applied.
+        """
+        boosted = dict(task_confidences)
+
+        left_obj = proximity.get("nearest_left_wrist")
+        right_obj = proximity.get("nearest_right_wrist")
+
+        # Collect nearby objects by category
+        nearby: Dict[str, float] = {}
+        for obj in [left_obj, right_obj]:
+            if obj is None:
+                continue
+            dist = obj.get("distance_px", 9999)
+            cat = obj.get("category", "")
+            if dist < OBJECT_PROXIMITY_NEAR:
+                nearby[cat] = min(nearby.get(cat, 9999), dist)
+
+        # Pick and place: boost if small item near a wrist
+        if "small_item" in nearby:
+            boosted["pick_and_place"] = min(1.0, boosted["pick_and_place"] + OBJECT_BOOST)
+
+        # Lift and place: boost if tray or surface near wrists
+        if "tray_or_surface" in nearby:
+            boosted["lift_and_place"] = min(1.0, boosted["lift_and_place"] + OBJECT_BOOST)
+
+        # Move rack: boost if rack or cart near extended arms
+        if "rack_or_cart" in nearby:
+            boosted["move_rack"] = min(1.0, boosted["move_rack"] + OBJECT_BOOST)
+
+        return boosted
 
     def _update_state_machines(self, track_id: int, frame_index: int,
                                task_confidences: Dict[str, float],
