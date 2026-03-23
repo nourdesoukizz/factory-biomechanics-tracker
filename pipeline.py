@@ -108,6 +108,17 @@ def run_pipeline(config_path: str, input_path: Optional[str] = None,
         angle_smoothing_window=bio_cfg.get("angle_smoothing_window", 5),
     )
 
+    # === Phase 3b: Object Detection ===
+    obj_cfg = config.get("object_detection", {})
+    obj_detector = None
+    if obj_cfg.get("enabled", False):
+        from src.object_detection import ObjectDetector
+        obj_detector = ObjectDetector(
+            conf_threshold=obj_cfg.get("conf_threshold", 0.3),
+            device="mps",
+        )
+        logger.info("Object detection enabled for task confirmation")
+
     # === Phase 4: Task Classification ===
     learned_cfg = config.get("learned_classification", {})
     if learned_cfg.get("enabled", False):
@@ -208,6 +219,11 @@ def run_pipeline(config_path: str, input_path: Optional[str] = None,
         # Detection + Tracking
         persons = tracker.update(frame_bgr, frame_index, timestamp_sec)
 
+        # Object detection for task confirmation
+        frame_objects = []
+        if obj_detector is not None:
+            frame_objects = obj_detector.detect_objects(frame_bgr)
+
         # Per-person processing
         task_labels: Dict[int, tuple] = {}
         rula_labels: Dict[int, tuple] = {}
@@ -221,9 +237,18 @@ def run_pipeline(config_path: str, input_path: Optional[str] = None,
             rula_score, rula_label = bio.compute_rula_score(joint_angles)
             is_active = not bio.is_idle(velocity)
 
+            # Object proximity for this person
+            object_proximity = None
+            if frame_objects:
+                from src.object_detection import ObjectDetector
+                object_proximity = ObjectDetector.compute_hand_object_proximity(
+                    person.keypoints, frame_objects
+                )
+
             # Task classification
             task_name, task_conf, task_events = classifier.classify_frame(
-                person, joint_angles, velocity, rula_score, rula_label, reader.fps
+                person, joint_angles, velocity, rula_score, rula_label, reader.fps,
+                object_proximity=object_proximity
             )
 
             # Metrics update
