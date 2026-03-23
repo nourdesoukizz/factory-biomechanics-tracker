@@ -216,7 +216,8 @@ All outputs are namespaced by run ID (`YYYYMMDD_HHMMSS`):
 
 ```
 Video → YOLOv8m-pose → ByteTrack + ReID → Biomechanics (Full RULA)
-  → Learned Task Classifier (1D Temporal CNN) → Metrics Engine
+     → YOLOv8m (Object Detection) → Hand-Object Proximity
+  → Learned Task Classifier (1D Temporal CNN + Object Confirmation) → Metrics Engine
   → [Annotated Video, CSV, JSON, Heatmaps, PDF]
 ```
 
@@ -292,9 +293,10 @@ All settings in `config/default.yaml`:
 
 | Decision | Choice | Why |
 |---|---|---|
-| Detection model | YOLOv8m-pose | Best accuracy/speed tradeoff with built-in pose, GPU-accelerated |
-| Tracking | ByteTrack + ReID | Handles occlusion; ReID merges fragmented tracks (**190 → 52 persons**) |
-| Task classification | Learned 1D CNN | Trained on video itself via pseudo-labels; generalizes better than hard rules |
+| Pose detection | YOLOv8m-pose | Best accuracy/speed tradeoff with built-in pose, GPU-accelerated |
+| Object detection | YOLOv8m | Detects trays, racks, items; hand-object proximity confirms tasks |
+| Tracking | ByteTrack + ReID | Handles occlusion; ReID merges fragmented tracks (**190 to 52 persons**) |
+| Task classification | Learned 1D CNN + objects | Pose-based CNN boosted by object proximity for higher precision |
 | Keypoint smoothing | 2D Kalman (pos+vel) | Tracks position and velocity; predicts during brief occlusions |
 | Ergonomic scoring | Full RULA (Groups A+B) | Industry-standard with proper lookup tables, not linear approximation |
 | PDF generation | ReportLab | Pure Python, no browser dependency, embeds matplotlib charts |
@@ -307,7 +309,7 @@ All settings in `config/default.yaml`:
 |---|---|---|
 | Pose estimation | 2D keypoints only, no depth | Foreshortening reduces angle accuracy when limbs point toward or away from camera |
 | Task classification | Trained on pseudo-labels from a single video | Model may not generalize well to different factory layouts or camera angles |
-| Object interaction | No explicit object detection | Tasks inferred from pose alone, cannot confirm if worker is actually holding a tray or rack |
+| Object interaction | Uses COCO class proxies, not fine-tuned | Detects bowls/tables/suitcases as proxies for factory items; a fine-tuned model on factory objects would be more precise |
 | Tracking | ReID uses color histograms only | Workers in identical uniforms may be confused after long occlusions |
 | RULA scoring | Wrist twist not detectable in 2D | Wrist twist defaults to neutral, underestimating risk for twisting motions |
 | Scalability | Single-threaded frame processing | Processes one frame at a time, no batch GPU inference or multiprocessing |
